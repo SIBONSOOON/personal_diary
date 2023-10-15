@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/bs-custom-file-input/dist/bs-custom-file-input.js"></script>
+    <style>
+      .profile-img {
+        width: 100px; /* Lebar gambar profil */
+        height: 100px; /* Tinggi gambar profil */
+        border-radius: 50%; /* Membuat gambar bulat */
+        object-fit: cover; /* Mengatur tampilan gambar agar sesuai dalam lingkaran */
+      }
+    </style>
+
+    <script>
+      $(document).ready(function () {
+        listing();
+        bsCustomFileInput.init();
+        $("#submit-button").click(function () {
+          posting();
+        });
+      });
+      function listing() {
+        $("#cards-box").empty();
+        $.ajax({
+          type: "GET",
+          url: "/diary",
+          data: {},
+          success: function (response) {
+            let articles = response["diary"];
+            for (let i = 0; i < articles.length; i++) {
+              let title = articles[i]["title"];
+              let content = articles[i]["content"];
+              let image = articles[i]["image"];
+              let profile = articles[i]["profile"];
+              let temp_html = `
+              <div class="col-4">
+          <div class="card">
+            <img src="${image}" class="card-img-top" alt="Article Image" />
+            <div class="card-body">
+                <img src="${profile}" class="profile-img" alt="Profile Image" />
+              <h5 class="card-title">${title}</h5>
+              <p class="card-text">${content}</p>
+              <h6 class="card-subtitle mb-2 text-muted">2022.02.14</h6>
+            </div>
+          </div>
+        </div>
+                `;
+              $("#cards-box").append(temp_html);
+            }
+          },
+        });
+      }
+      function posting() {
+        let title = $("#image-title").val();
+        if (!title) {
+          return alert("None Data");
+        }
+        let content = $("#image-description").val();
+        if (!content) {
+          return alert("None Data");
+        }
+        let image = $("#file-image")[0].files[0];
+        if (!image) {
+          return alert("None File");
+        }
+        let profile = $("#profile-image")[0].files[0];
+        if (!profile) {
+          return alert("None File");
+        }
+        let formData = new FormData();
+        formData.append("title_give", title);
+        formData.append("content_give", content);
+        formData.append("image-give", image);
+        formData.append("profile-give", profile);
+        $.ajax({
+          type: "POST",
+          url: "/diary",
+          data: formData,
+          processData: false,
+          contentType: false,
+          success: function (response) {
+            console.log(response);
+            window.location.reload();
+          },
+        });
+      }
+    </script>
+
+    <title>Diary</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="p-5 mb-4 bg-light rounded-3">
+        <div class="container-fluid py-5">
+          <h1 class="display-5 fw-bold">Personal Diary</h1>
+          <div class="mb-3">
+            <label for="file-image" class="form-label">Select an image</label>
+            <input
+              type="file"
+              class="form-control"
+              id="file-image"
+              name="image-give"
+            />
+            <label for="profile-image" class="form-label"
+              >Select an profile image</label
+            >
+            <input
+              type="file"
+              class="form-control"
+              id="profile-image"
+              name="profile-give"
+            />
+          </div>
+          <div class="mb-3">
+            <input
+              type="text"
+              class="form-control"
+              id="image-title"
+              placeholder="The title of your image"
+            />
+          </div>
+          <div class="mb-3">
+            <textarea
+              placeholder="The description of your image"
+              class="form-control"
+              id="image-description"
+              rows="3"
+            ></textarea>
+          </div>
+          <button class="btn btn-primary" id="submit-button">Save</button>
+        </div>
+      </div>
+      <div class="row justify-content-start" id="cards-box"></div>
+    </div>
+  </body>
+</html>
